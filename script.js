@@ -1,26 +1,17 @@
 async function runWorkflow(repo, workflow) {
- const token = process.env.GH_TOKEN;
-  const username = process.env.GH_USERNAME;
-  const url = `https://api.github.com/repos/${username}/${repo}/actions/workflows/${workflow}/dispatches`;
-
   try {
-    const res = await fetch(url, {
+    const res = await fetch('/api/run-workflow', {
       method: 'POST',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ref: 'main' // branch to run workflow on
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repo, workflow })
     });
 
+    const data = await res.json();
+
     if (res.ok) {
-      alert(`Workflow triggered successfully for ${repo}`);
+      alert(data.message); // Success message from serverless function
     } else {
-      const error = await res.json();
-      console.error(error);
+      console.error(data.error);
       alert('Error triggering workflow. Check console.');
     }
   } catch (err) {
@@ -41,3 +32,4 @@ document.querySelector('#initialEmailBtn').addEventListener('click', () => {
 document.querySelector('#replyEmailBtn').addEventListener('click', () => {
   runWorkflow('Jouvella-Outreach', 'run-script.yml');
 });
+
