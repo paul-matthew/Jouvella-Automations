@@ -1,6 +1,6 @@
 async function runWorkflow(repo, workflow) {
- const token = process.env.GITHUB_TOKEN;
-  const username = process.env.GITHUB_USERNAME;
+ const token = process.env.GH_TOKEN;
+  const username = process.env.GH_USERNAME;
   const url = `https://api.github.com/repos/${username}/${repo}/actions/workflows/${workflow}/dispatches`;
 
   try {
