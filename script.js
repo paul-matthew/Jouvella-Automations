@@ -25,11 +25,13 @@ document.querySelector('#leadBtn').addEventListener('click', () => {
   runWorkflow('Jouvella-Data-Scraper', 'run-script.yml');
 });
 
+// Example for outreach button
 document.querySelector('#initialEmailBtn').addEventListener('click', () => {
-  runWorkflow('Jouvella-Outreach', 'run-script.yml');
+  runWorkflow('Jouvella-Outreach', 'run-script.yml', { type: 'outreach' });
 });
 
 document.querySelector('#replyEmailBtn').addEventListener('click', () => {
-  runWorkflow('Jouvella-Outreach', 'run-script.yml');
+  runWorkflow('Jouvella-Outreach', 'run-script.yml', { type: 'followup' });
 });
+
 
