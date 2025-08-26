@@ -1,15 +1,15 @@
-async function runWorkflow(repo, workflow) {
+async function runWorkflow(repo, workflow, inputs = {}) {
   try {
     const res = await fetch('/api/run-workflow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ repo, workflow })
+      body: JSON.stringify({ repo, workflow, inputs }) // pass inputs
     });
 
     const data = await res.json();
 
     if (res.ok) {
-      alert(data.message); // Success message from serverless function
+      alert(data.message); // Success message
     } else {
       console.error(data.error);
       alert('Error triggering workflow. Check console.');
@@ -19,6 +19,7 @@ async function runWorkflow(repo, workflow) {
     alert('Network or other error occurred.');
   }
 }
+
 
 // Wire buttons to workflows
 document.querySelector('#leadBtn').addEventListener('click', () => {
