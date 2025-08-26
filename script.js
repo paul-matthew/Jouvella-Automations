@@ -21,6 +21,7 @@ async function runWorkflow(repo, workflow, inputs = {}) {
 }
 
 
+
 // Wire buttons to workflows
 document.querySelector('#leadBtn').addEventListener('click', () => {
   runWorkflow('Jouvella-Data-Scraper', 'run-script.yml');
