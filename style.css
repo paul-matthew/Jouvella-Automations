@@ -1,0 +1,78 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Helvetica Neue', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center vertically */
+  min-height: 100vh;
+  background: #F3EFE9; /* Creamy Off-White */
+  color: #195D56; /* Deep Teal Green as default text */
+  padding: 2rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+header img {
+  width: 100px;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+header h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  letter-spacing: 2px;
+  color: #195D56; /* Deep Teal Green */
+  text-shadow: 0 0 8px rgba(227,198,160,0.6); /* Soft Golden Sand glow */
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 100%;
+  max-width: 350px;
+}
+
+.btn {
+  padding: 1rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #F3EFE9; /* Off-White text */
+  background: linear-gradient(135deg, #195D56, #DB8B7B); /* Deep Teal → Muted Coral Rose */
+  box-shadow: 0 5px 15px rgba(179,195,177,0.3); /* Light Sage Green shadow */
+  transition: all 0.25s ease-in-out;
+}
+
+.btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  background: linear-gradient(135deg, #DB8B7B, #E2C6A0); /* Coral Rose → Golden Sand */
+  box-shadow: 0 8px 20px rgba(179,195,177,0.5); /* stronger Sage shadow */
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 2rem;
+  }
+  .btn {
+    font-size: 1rem;
+    padding: 0.9rem;
+  }
+}
+
