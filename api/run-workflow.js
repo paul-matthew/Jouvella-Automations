@@ -1,14 +1,19 @@
-import fetch from 'node-fetch';
-
 export default async function handler(req, res) {
+  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  const { repo, workflow } = req.body;
+  const { repo, workflow, inputs } = req.body;
 
   const token = process.env.GH_TOKEN;
   const username = process.env.GH_USERNAME;
+
+  // Check for required environment variables
+  if (!token || !username) {
+    return res.status(500).json({ error: 'Environment variables GH_TOKEN or GH_USERNAME missing' });
+  }
+
   const url = `https://api.github.com/repos/${username}/${repo}/actions/workflows/${workflow}/dispatches`;
 
   try {
@@ -19,21 +24,21 @@ export default async function handler(req, res) {
         'Accept': 'application/vnd.github+json',
         'Content-Type': 'application/json'
       },
-    body: JSON.stringify({
-      ref: 'main',
-      inputs: req.body.inputs || {}
-    })
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: inputs || {}
+      })
     });
 
+    const text = await response.text();
+
     if (response.ok) {
-      res.status(200).json({ message: `Workflow triggered successfully for ${repo}` });
+      return res.status(200).json({ message: `Workflow triggered successfully for ${repo}` });
     } else {
-      const error = await response.json();
-      res.status(500).json({ error });
+      // Return GitHub API error text as JSON
+      return res.status(500).json({ error: text });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 }
-
-
