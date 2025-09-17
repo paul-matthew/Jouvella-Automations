@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const workflowButtons = [
     document.getElementById('leadBtn'),
     document.getElementById('initialEmailBtn'),
-    document.getElementById('replyEmailBtn')
+    document.getElementById('replyEmailBtn'),
+    document.getElementById('replyEmailBtn2')
   ];
 
   // Login button
@@ -82,6 +83,10 @@ document.querySelector('#initialEmailBtn').addEventListener('click', () => {
 
 document.querySelector('#replyEmailBtn').addEventListener('click', () => {
   runWorkflow('Jouvella-Outreach', 'run-script.yml', { type: 'followup' });
+});
+
+document.querySelector('#replyEmailBtn2').addEventListener('click', () => {
+  runWorkflow('Jouvella-Outreach', 'run-script.yml', { type: 'followup2' });
 });
 
 
