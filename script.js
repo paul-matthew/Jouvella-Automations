@@ -10,26 +10,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Workflow buttons
   const workflowButtons = [
-    document.getElementById('leadBtn'),
+    // document.getElementById('leadBtn'),
     document.getElementById('initialEmailBtn'),
     document.getElementById('replyEmailBtn'),
     document.getElementById('replyEmailBtn2')
   ];
 
   // Login button
-  loginBtn.addEventListener('click', () => {
-    const username = document.getElementById('username').value;
-    const password = passwordInput.value;
+function handleLogin() {
+  const username = document.getElementById('username').value;
+  const password = passwordInput.value;
 
-    if (username === correctUsername && password === correctPassword) {
-      overlay.style.display = 'none';
-      errorMsg.style.display = 'none';
-      // Enable workflow buttons
-      workflowButtons.forEach(btn => btn.disabled = false);
-    } else {
-      errorMsg.style.display = 'block';
-    }
-  });
+  if (username === correctUsername && password === correctPassword) {
+    overlay.style.display = 'none';
+    errorMsg.style.display = 'none';
+    // Enable workflow buttons
+    workflowButtons.forEach(btn => btn.disabled = false);
+  } else {
+    errorMsg.style.display = 'block';
+  }
+}
+
+loginBtn.addEventListener('click', handleLogin);
+
+// Allow pressing Enter key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    handleLogin();
+  }
+});
 
   // Eye toggle
   togglePassword.addEventListener('click', () => {
@@ -72,9 +81,9 @@ async function runWorkflow(repo, workflow, inputs = {}) {
 
 
 // Wire buttons to workflows
-document.querySelector('#leadBtn').addEventListener('click', () => {
-  runWorkflow('Jouvella-Data-Scraper', 'run-script.yml');
-});
+// document.querySelector('#leadBtn').addEventListener('click', () => {
+//   runWorkflow('Jouvella-Data-Scraper', 'run-script.yml');
+// });
 
 // Example for outreach button
 document.querySelector('#initialEmailBtn').addEventListener('click', () => {
