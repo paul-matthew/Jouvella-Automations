@@ -1,17 +1,33 @@
-export default async function handler(req, res) {
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
+import fetch from 'node-fetch';
+
+export async function handler(event, context) {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ message: 'Method Not Allowed' }),
+    };
   }
 
-  const { repo, workflow, inputs } = req.body;
+  let body;
+  try {
+    body = JSON.parse(event.body);
+  } catch (err) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Invalid JSON' }),
+    };
+  }
+
+  const { repo, workflow, inputs } = body;
 
   const token = process.env.GH_TOKEN;
   const username = process.env.GH_USERNAME;
 
-  // Check for required environment variables
   if (!token || !username) {
-    return res.status(500).json({ error: 'Environment variables GH_TOKEN or GH_USERNAME missing' });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'GH_TOKEN or GH_USERNAME missing in environment' }),
+    };
   }
 
   const url = `https://api.github.com/repos/${username}/${repo}/actions/workflows/${workflow}/dispatches`;
@@ -22,23 +38,32 @@ export default async function handler(req, res) {
       headers: {
         'Authorization': `token ${token}`,
         'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         ref: 'main',
-        inputs: inputs || {}
-      })
+        inputs: inputs || {},
+      }),
     });
 
     const text = await response.text();
 
     if (response.ok) {
-      return res.status(200).json({ message: `Workflow triggered successfully for ${repo}` });
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: `Workflow triggered successfully for ${repo}` }),
+      };
     } else {
-      // Return GitHub API error text as JSON
-      return res.status(500).json({ error: text });
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: text }),
+      };
     }
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
   }
 }
+
