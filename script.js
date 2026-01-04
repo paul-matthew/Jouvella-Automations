@@ -58,7 +58,8 @@ document.addEventListener('keydown', (e) => {
 
 async function runWorkflow(repo, workflow, inputs = {}) {
   try {
-    const res = await fetch('/api/run-workflow', {
+    // const res = await fetch('/api/run-workflow', {
+    const res = await fetch('https://jouvella-automations.netlify.app/.netlify/functions/run-workflow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ repo, workflow, inputs }) // pass inputs
