@@ -5,26 +5,20 @@ export async function handler(event) {
     return { statusCode: 400 };
   }
 
-  // Fire-and-forget so redirect is instant
-  fetch("/.netlify/functions/record-click", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      leadId,
-      clickedAt: new Date().toISOString()
-    })
-  }).catch(() => {});
+  try {
+    await fetch(
+      `${process.env.URL}/.netlify/functions/record-click?id=${leadId}`
+    );
+  } catch (err) {
+    console.error("Click tracking failed:", err);
+  }
 
   return {
     statusCode: 302,
     headers: {
-      Location: "https://www.youtube.com/watch?v=zLSM5IDC_X0"
-    }
+      Location: "https://www.youtube.com/watch?v=zLSM5IDC_X0",
+    },
   };
 }
-
-
 
 
