@@ -7,7 +7,7 @@ export async function handler(event) {
 
   try {
     await fetch(
-      `${process.env.URL}/.netlify/functions/record-click?id=${leadId}`
+      `${process.env.URL_NAME}/.netlify/functions/record-click?id=${leadId}`
     );
   } catch (err) {
     console.error("Click tracking failed:", err);
