@@ -8,49 +8,19 @@ const TRANSPARENT_PIXEL = Buffer.from(
   "base64"
 );
 
-// Ignore anything earlier than this (ms)
-const MIN_OPEN_DELAY = 3 * 60 * 1000; // 3 minutes
-
 export async function handler(event) {
   const leadId = event.queryStringParameters?.id;
-  const userAgent = event.headers["user-agent"] || "";
 
-  if (!leadId) {
-    return pixel();
+  if (leadId) {
+    try {
+      await base(process.env.AIRTABLE_TABLE_NAME).update(leadId, {
+        "Email Opened Date": new Date(),
+      });
+    } catch (err) {
+      console.error("Open tracking failed:", err);
+    }
   }
 
-  try {
-    const record = await base(process.env.AIRTABLE_TABLE_NAME).find(leadId);
-    const sentAt = record.get("Email Sent At");
-
-    if (!sentAt) {
-      return pixel();
-    }
-
-    const sentTime = new Date(sentAt).getTime();
-    const now = Date.now();
-
-    // Ignore provider prefetch / immediate scans
-    if (now - sentTime < MIN_OPEN_DELAY) {
-      console.log("Ignored early open (likely provider scan)");
-      return pixel();
-    }
-
-    // Always overwrite after delay (real human behavior)
-    await base(process.env.AIRTABLE_TABLE_NAME).update(leadId, {
-      "Email Opened Date": new Date().toISOString(),
-    });
-
-    console.log("Recorded/updated open:", leadId);
-
-  } catch (err) {
-    console.error("Open tracking failed:", err);
-  }
-
-  return pixel();
-}
-
-function pixel() {
   return {
     statusCode: 200,
     headers: {
@@ -61,5 +31,3 @@ function pixel() {
     isBase64Encoded: true,
   };
 }
-
-
