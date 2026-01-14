@@ -8,17 +8,48 @@ const TRANSPARENT_PIXEL = Buffer.from(
   "base64"
 );
 
+// Known email scanners / proxies
+const BOT_PATTERNS = [
+  "googleimageproxy",
+  "google",
+  "gmail",
+  "outlook",
+  "microsoft",
+  "bing",
+  "yahoo",
+  "proofpoint",
+  "mimecast",
+  "barracuda",
+  "scanner",
+  "spam",
+  "security"
+];
+
+function isBot(userAgent = "") {
+  const ua = userAgent.toLowerCase();
+  return BOT_PATTERNS.some(p => ua.includes(p));
+}
+
 export async function handler(event) {
   const leadId = event.queryStringParameters?.id;
+  const userAgent = event.headers["user-agent"] || "";
 
-  if (leadId) {
+  if (leadId && !isBot(userAgent)) {
     try {
-      await base(process.env.AIRTABLE_TABLE_NAME).update(leadId, {
-        "Email Opened Date": new Date(),
-      });
+      const record = await base(process.env.AIRTABLE_TABLE_NAME).find(leadId);
+
+      // Only set if not already opened
+      if (!record.get("Email Opened Date")) {
+        await base(process.env.AIRTABLE_TABLE_NAME).update(leadId, {
+          "Email Opened Date": new Date().toISOString(),
+        });
+      }
+
     } catch (err) {
       console.error("Open tracking failed:", err);
     }
+  } else {
+    console.log("Ignored bot open:", userAgent);
   }
 
   return {
@@ -31,3 +62,4 @@ export async function handler(event) {
     isBase64Encoded: true,
   };
 }
+
