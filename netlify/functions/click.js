@@ -5,6 +5,7 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
 
 const YOUTUBE_URL = "https://www.youtube.com/watch?v=zLSM5IDC_X0";
 
+// Known scanner / security UA fragments
 const BOT_PATTERNS = [
   "google",
   "gmail",
@@ -20,6 +21,9 @@ const BOT_PATTERNS = [
   "security"
 ];
 
+// Minimum delay after send (ms)
+const MIN_CLICK_DELAY = 5 * 60 * 1000; // 5 minutes
+
 function isBot(userAgent = "") {
   const ua = userAgent.toLowerCase();
   return BOT_PATTERNS.some(p => ua.includes(p));
@@ -29,45 +33,54 @@ export async function handler(event) {
   const leadId = event.queryStringParameters?.id;
   const userAgent = event.headers["user-agent"] || "";
 
+  // Always redirect — tracking must never block UX
+  const redirect = {
+    statusCode: 302,
+    headers: { Location: YOUTUBE_URL, "Cache-Control": "no-store" },
+  };
+
   if (!leadId) {
-    return {
-      statusCode: 302,
-      headers: { Location: YOUTUBE_URL },
-    };
+    return redirect;
   }
 
-  // Ignore scanners
+  // Ignore obvious scanners
   if (isBot(userAgent)) {
     console.log("Ignored bot click:", userAgent);
-    return {
-      statusCode: 302,
-      headers: { Location: YOUTUBE_URL },
-    };
+    return redirect;
   }
-
-  console.log("Recording REAL click for:", leadId);
 
   try {
     const record = await base(process.env.AIRTABLE_TABLE_NAME).find(leadId);
+    const sentAt = record.get("Email Sent At");
 
-    // Only record first real click
-    if (!record.get("Emailed Youtube Click Date")) {
-      await base(process.env.AIRTABLE_TABLE_NAME).update(leadId, {
-        "Emailed Youtube Click Date": new Date().toISOString(),
-      });
+    if (!sentAt) {
+      console.log("No sent date, skipping click record:", leadId);
+      return redirect;
     }
+
+    const sentTime = new Date(sentAt).getTime();
+    const now = Date.now();
+
+    // Ignore early clicks (scanner / prefetch behavior)
+    if (now - sentTime < MIN_CLICK_DELAY) {
+      console.log("Ignored early click (likely scanner):", leadId);
+      return redirect;
+    }
+
+    // Always overwrite with most recent real click
+    await base(process.env.AIRTABLE_TABLE_NAME).update(leadId, {
+      "Emailed Youtube Click Date": new Date().toISOString(),
+    });
+
+    console.log("Recorded/updated REAL click:", leadId);
 
   } catch (err) {
     console.error("Click tracking failed:", err);
   }
 
-  return {
-    statusCode: 302,
-    headers: {
-      Location: YOUTUBE_URL,
-    },
-  };
+  return redirect;
 }
+
 
 
 

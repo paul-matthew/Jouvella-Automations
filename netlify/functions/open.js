@@ -8,50 +8,49 @@ const TRANSPARENT_PIXEL = Buffer.from(
   "base64"
 );
 
-// Known email scanners / proxies
-const BOT_PATTERNS = [
-  "googleimageproxy",
-  "google",
-  "gmail",
-  "outlook",
-  "microsoft",
-  "bing",
-  "yahoo",
-  "proofpoint",
-  "mimecast",
-  "barracuda",
-  "scanner",
-  "spam",
-  "security"
-];
-
-function isBot(userAgent = "") {
-  const ua = userAgent.toLowerCase();
-  return BOT_PATTERNS.some(p => ua.includes(p));
-}
+// Ignore anything earlier than this (ms)
+const MIN_OPEN_DELAY = 3 * 60 * 1000; // 3 minutes
 
 export async function handler(event) {
   const leadId = event.queryStringParameters?.id;
   const userAgent = event.headers["user-agent"] || "";
 
-  if (leadId && !isBot(userAgent)) {
-    try {
-      const record = await base(process.env.AIRTABLE_TABLE_NAME).find(leadId);
-
-      // Only set if not already opened
-      if (!record.get("Email Opened Date")) {
-        await base(process.env.AIRTABLE_TABLE_NAME).update(leadId, {
-          "Email Opened Date": new Date().toISOString(),
-        });
-      }
-
-    } catch (err) {
-      console.error("Open tracking failed:", err);
-    }
-  } else {
-    console.log("Ignored bot open:", userAgent);
+  if (!leadId) {
+    return pixel();
   }
 
+  try {
+    const record = await base(process.env.AIRTABLE_TABLE_NAME).find(leadId);
+    const sentAt = record.get("Email Sent At");
+
+    if (!sentAt) {
+      return pixel();
+    }
+
+    const sentTime = new Date(sentAt).getTime();
+    const now = Date.now();
+
+    // Ignore provider prefetch / immediate scans
+    if (now - sentTime < MIN_OPEN_DELAY) {
+      console.log("Ignored early open (likely provider scan)");
+      return pixel();
+    }
+
+    // Always overwrite after delay (real human behavior)
+    await base(process.env.AIRTABLE_TABLE_NAME).update(leadId, {
+      "Email Opened Date": new Date().toISOString(),
+    });
+
+    console.log("Recorded/updated open:", leadId);
+
+  } catch (err) {
+    console.error("Open tracking failed:", err);
+  }
+
+  return pixel();
+}
+
+function pixel() {
   return {
     statusCode: 200,
     headers: {
@@ -62,4 +61,5 @@ export async function handler(event) {
     isBase64Encoded: true,
   };
 }
+
 
